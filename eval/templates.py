@@ -1,11 +1,13 @@
 
-def create_prompt_with_tulu_chat_format(messages, bos="<s>", eos="</s>", add_bos=True):
+def create_prompt_with_tulu_chat_format(messages, bos="<s>", eos="</s>", add_bos=True, add_extra_id=False):
     formatted_text = ""
     for message in messages:
         if message["role"] == "system":
             formatted_text += "<|system|>\n" + message["content"] + "\n"
         elif message["role"] == "user":
             formatted_text += "<|user|>\n" + message["content"] + "\n"
+            if add_extra_id:
+                formatted_text += "[extra_id_1]\n"
         elif message["role"] == "assistant":
             formatted_text += "<|assistant|>\n" + message["content"].strip() + eos + "\n"
         else:
@@ -14,6 +16,19 @@ def create_prompt_with_tulu_chat_format(messages, bos="<s>", eos="</s>", add_bos
                 )
     formatted_text += "<|assistant|>\n"
     formatted_text = bos + formatted_text if add_bos else formatted_text
+    return formatted_text
+
+def create_prompt_with_saferlhf_chat_format(messages, bos="<s>", eos="</s>", add_bos=True):
+    formatted_text = "BEGINNING OF CONVERSATION: "
+    for message in messages:
+        if message["role"] == "user":
+            formatted_text += "USER: " + message["content"] + " ASSISTANT:"
+        elif message["role"] == "assistant":
+            formatted_text += message["content"].strip() + eos
+        else:
+            raise ValueError(
+                "safe-rlhf chat template only supports 'user' and 'assistant' roles. Invalid role: {}.".format(message["role"])
+                )
     return formatted_text
 
 

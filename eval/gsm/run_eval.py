@@ -50,13 +50,23 @@ def main(args):
         demonstrations = []
         for example in GSM_EXAMPLARS:
             if args.no_cot:
-                demonstrations.append(
-                    "Quesion: " + example["question"] + "\n" + "Answer: " + example["short_answer"]
-                )
+                if args.add_extra_id:
+                    demonstrations.append(
+                        "Quesion: " + example["question"] + "\n" + "[extra_id_1]\n" + "Answer: " + example["short_answer"]
+                    )
+                else:
+                    demonstrations.append(
+                        "Quesion: " + example["question"] + "\n" + "Answer: " + example["short_answer"]
+                    )
             else:
-                demonstrations.append(
-                    "Question: " + example["question"] + "\n" + "Answer: " + example["cot_answer"]
-                )
+                if args.add_extra_id:
+                    demonstrations.append(
+                        "Question: " + example["question"] + "\n" + "[extra_id_1]\n" + "Answer: " + example["cot_answer"]
+                    )
+                else:
+                    demonstrations.append(
+                        "Question: " + example["question"] + "\n" + "Answer: " + example["cot_answer"]
+                    )
         prompt_prefix = "Answer the following questions.\n\n" + "\n\n".join(demonstrations) + "\n\n"
     else:
         prompt_prefix = "Answer the following question.\n\n"
@@ -66,11 +76,14 @@ def main(args):
         chat_formatting_function = dynamic_import_function(args.chat_formatting_function)
         for example in test_data:
             messages = [{"role": "user", "content": prompt_prefix + "Question: " + example["question"].strip()}]
-            prompt = chat_formatting_function(messages, add_bos=False)
+            prompt = chat_formatting_function(messages, add_bos=False, add_extra_id=args.add_extra_id)
             prompt += "Answer:" if prompt[-1] in ["\n", " "] else " Answer:"
             prompts.append(prompt)
     else:
-        prompts = [prompt_prefix + "Question: " + example["question"].strip() + "\nAnswer:" for example in test_data]
+        if args.add_extra_id:
+            prompts = [prompt_prefix + "Question: " + example["question"].strip() + "\n[extra_id_1]" + "\nAnswer:" for example in test_data]
+        else:
+            prompts = [prompt_prefix + "Question: " + example["question"].strip() + "\nAnswer:" for example in test_data]
 
     if args.model_name_or_path:
         print("Loading model and tokenizer...")
@@ -202,6 +215,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--no_cot", 
+        action="store_true", 
+        help="If given, we're evaluating a model without chain-of-thought."
+    )
+    parser.add_argument(
+        "--add_extra_id", 
         action="store_true", 
         help="If given, we're evaluating a model without chain-of-thought."
     )

@@ -5,7 +5,7 @@ data/*
 # !data/processed
 output/
 beaker_configs/auto_created
-
+*.out
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

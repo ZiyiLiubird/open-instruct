@@ -33,7 +33,7 @@ from transformers import (
     Trainer,
 )
 from transformers.trainer_utils import get_last_checkpoint
-from finetune import encode_with_prompt_completion_format, encode_with_messages_format
+from finetune import encode_with_prompt_completion_format, encode_with_messages_format, init_new_embeddings
 
 
 logger = logging.getLogger(__name__)
@@ -146,6 +146,9 @@ class DataTrainingArguments:
     streaming: bool = field(default=False, metadata={"help": "Enable streaming mode"})
     overwrite_cache: bool = field(
         default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
+    )
+    add_extra_id: bool = field(
+        default=False, metadata={"help": "If passed, will add extra_id to the prompt."}
     )
     preprocessing_num_workers: Optional[int] = field(
         default=None,
@@ -317,10 +320,16 @@ def main():
     elif isinstance(tokenizer, GPT2Tokenizer) and isinstance(model, OPTForCausalLM):
         num_added_tokens = tokenizer.add_special_tokens({'unk_token': '<unk>'})
 
+    model.config.bos_token_id = tokenizer.bos_token_id
+    model.config.eos_token_id = tokenizer.eos_token_id
+    model.config.pad_token_id = tokenizer.pad_token_id
+
     # resize embeddings if needed (e.g. for LlamaTokenizer)
     embedding_size = model.get_input_embeddings().weight.shape[0]
     if len(tokenizer) > embedding_size:
         model.resize_token_embeddings(len(tokenizer))
+        init_new_embeddings(model.get_input_embeddings(), num_added_tokens)
+        init_new_embeddings(model.get_output_embeddings(), num_added_tokens)
 
     # Preprocessing the datasets.
     if "prompt" in raw_datasets["train"].column_names and "completion" in raw_datasets["train"].column_names:
@@ -334,6 +343,7 @@ def main():
             encode_with_messages_format,
             tokenizer=tokenizer,
             max_seq_length=data_args.max_seq_length,
+            add_extra_id=data_args.add_extra_id,
         )
     else:
         raise ValueError("You need to have either 'prompt'&'completion' or 'messages' in your column names.")

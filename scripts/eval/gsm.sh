@@ -1,6 +1,6 @@
 # # Here we use 1 GPU for demonstration, but you can use multiple GPUs and larger eval_batch_size to speed up the evaluation.
-# export CUDA_VISIBLE_DEVICES=0
-
+export CUDA_VISIBLE_DEVICES=7
+MODEL_PATH="/paratera5-data/private/liuziyi/mygit/open-instruct/output/hf_train/llama2_7B_sharegpt_gpt4_no_extraid/"
 
 # # Evaluating llama 7B model using chain-of-thought
 # python -m eval.gsm.run_eval \
@@ -17,11 +17,14 @@
 python -m eval.gsm.run_eval \
     --data_dir data/eval/gsm/ \
     --max_num_examples 1319 \
-    --save_dir results/gsm/llama-7B-cot-1shot \
-    --model /paratera5-data/private/liuziyi/LZY/mycodes/safe-rlhf/output/sft/1 \
-    --tokenizer /paratera5-data/private/liuziyi/LZY/mycodes/safe-rlhf/output/sft/1 \
-    --n_shot 1 \
-    --use_vllm
+    --save_dir results/gsm/llama-7B-extraid-sharegpt \
+    --model "${MODEL_PATH}" \
+    --tokenizer "${MODEL_PATH}" \
+    --use_vllm \
+    --use_chat_format
+    # --n_shot 8
+    # --add_extra_id \
+    # --n_shot 8 
 
 
 # # Evaluating tulu 7B model using chain-of-thought and chat format

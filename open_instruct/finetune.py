@@ -14,6 +14,7 @@ from accelerate.logging import get_logger
 from accelerate.utils import set_seed
 from datasets import load_dataset
 from torch.utils.data import DataLoader
+import torch.nn as nn
 from tqdm.auto import tqdm
 
 import transformers
@@ -92,6 +93,12 @@ def parse_args():
         "--use_flash_attn",
         action="store_true",
         help="If passed, will use flash attention to train the model.",
+    )
+    parser.add_argument(
+        "--add_extra_id",
+        action="store_true",
+        help="If passed, will add extra_id to the prompt.",
+        default=False,
     )
     parser.add_argument(
         "--tokenizer_name",
@@ -260,8 +267,7 @@ def encode_with_prompt_completion_format(example, tokenizer, max_seq_length):
         'attention_mask': attention_mask.flatten(),
     }
 
-
-def encode_with_messages_format(example, tokenizer, max_seq_length):
+def encode_with_messages_format(example, tokenizer, max_seq_length, add_extra_id=False):
     '''
     Here we assume each example has a 'messages' field Each message is a dict with 'role' and 'content' fields.
     We concatenate all messages with the roles as delimiters and tokenize them together.
@@ -273,10 +279,16 @@ def encode_with_messages_format(example, tokenizer, max_seq_length):
     def _concat_messages(messages):
         message_text = ""
         for message in messages:
+            source = message.get('source', None)
             if message["role"] == "system":
                 message_text += "<|system|>\n" + message["content"].strip() + "\n"
             elif message["role"] == "user":
                 message_text += "<|user|>\n" + message["content"].strip() + "\n"
+                if add_extra_id:
+                    if source == "gpt-4":
+                        message_text += "[extra_id_1]" + "\n"
+                    else:
+                        message_text += "[extra_id_0]" + "\n"
             elif message["role"] == "assistant":
                 message_text += "<|assistant|>\n" + message["content"].strip() + tokenizer.eos_token + "\n"
             else:
@@ -326,7 +338,7 @@ def save_with_accelerate(accelerator, model, tokenizer, output_dir, args):
     # When doing multi-gpu training, we need to use accelerator.get_state_dict(model) to get the state_dict.
     # Otherwise, sometimes the model will be saved with only part of the parameters.
     # Also, accelerator needs to use the wrapped model to get the state_dict.
-    state_dict = accelerator.get_state_dict(model)
+    # state_dict = accelerator.get_state_dict(model)
     if args.use_lora:
         # When using lora, the unwrapped model is a PeftModel, which doesn't support the is_main_process 
         # and has its own save_pretrained function for only saving lora modules.
@@ -335,9 +347,14 @@ def save_with_accelerate(accelerator, model, tokenizer, output_dir, args):
             unwrapped_model.save_pretrained(output_dir, state_dict=state_dict)
     else:
         unwrapped_model.save_pretrained(
-            output_dir, is_main_process=accelerator.is_main_process, save_function=accelerator.save, state_dict=state_dict
-        )
+            output_dir, is_main_process=accelerator.is_main_process, save_function=accelerator.save) #, state_dict=state_dict
+        # )
         
+def init_new_embeddings(embeddings: nn.Embedding, num_new_tokens) -> None:
+
+    embeddings_data = embeddings.weight.data
+    embeddings_mean = embeddings_data[:-num_new_tokens].mean(dim=0, keepdim=True)
+    embeddings_data[-num_new_tokens:] = embeddings_mean
 
 def main():
     args = parse_args()
@@ -464,11 +481,17 @@ def main():
     elif isinstance(tokenizer, GPT2Tokenizer) and isinstance(model, OPTForCausalLM):
         num_added_tokens = tokenizer.add_special_tokens({'unk_token': '<unk>'})
 
+    model.config.bos_token_id = tokenizer.bos_token_id
+    model.config.eos_token_id = tokenizer.eos_token_id
+    model.config.pad_token_id = tokenizer.pad_token_id
+
     # We resize the embeddings only when necessary to avoid index errors. If you are creating a model from scratch
     # on a small vocab and want a smaller embedding size, remove this test.
     embedding_size = model.get_input_embeddings().weight.shape[0]
     if len(tokenizer) > embedding_size:
         model.resize_token_embeddings(len(tokenizer))
+        init_new_embeddings(model.get_input_embeddings(), num_added_tokens)
+        init_new_embeddings(model.get_output_embeddings(), num_added_tokens)
 
     if args.use_lora:
         if args.use_qlora:
@@ -498,6 +521,7 @@ def main():
             encode_with_messages_format,
             tokenizer=tokenizer,
             max_seq_length=args.max_seq_length,
+            add_extra_id=args.add_extra_id,
         )
     else:
         raise ValueError("You need to have either 'prompt'&'completion' or 'messages' in your column names.")

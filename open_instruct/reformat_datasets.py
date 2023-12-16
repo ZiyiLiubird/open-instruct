@@ -23,8 +23,8 @@ import re
 import os
 import pandas as pd
 import argparse
+import datasets
 from instruction_encode_templates import encode_instruction_example, encode_few_shot_example
-
 
 def convert_super_ni_data(data_dir, output_dir, zero_shot_examples_per_task=60, few_shot_examples_per_task=20, n_few_shot=2):
     os.makedirs(output_dir, exist_ok=True)
@@ -353,6 +353,102 @@ def convert_sharegpt_data(data_dir, output_dir, data_file="sharegpt_html_cleaned
                 }) + "\n")
         if invalid_cnt > 0:
             print(f"# of invalid examples in sharegpt data: {invalid_cnt}")
+
+def convert_openchat_sharegpt_v3_data(data_dir, output_dir, data_file="sharegpt_gpt4.json", num_examples=None):
+    os.makedirs(output_dir, exist_ok=True)
+    examples = []
+    with open(os.path.join(data_dir, data_file), "r") as fin:
+        examples.extend(json.load(fin))
+    if num_examples:
+        examples = random.sample(examples, k=num_examples)
+    output_path = os.path.join(output_dir, "openchat_sharegpt_gpt4_data.jsonl")
+    with open(output_path, "w") as fout:
+        invalid_cnt = 0
+        for idx, example in enumerate(examples):
+            messages = []
+            valid = True
+            if example.get("model", None) == "Model: GPT-4":
+                source = "gpt-4"
+            else:
+                source = "others"
+            for message in example["items"]:
+                if message["from"] == "human" or message["from"] == "user":
+                    messages.append({
+                        "role": "user",
+                        "content": message["value"],
+                        "source": source,
+                    })
+                elif message["from"] == "gpt" or message["from"] == "chatgpt":
+                    messages.append({
+                        "role": "assistant",
+                        "content": message["value"],
+                        "source": source,
+                    })
+                elif message["from"] == "system":
+                    valid = False
+                    invalid_cnt += 1
+                    break
+                elif message["from"] == "bing":
+                    valid = False
+                    invalid_cnt += 1
+                    break
+                else:
+                    raise ValueError(f"Unknown message sender: {message['from']}")
+            if messages and valid:
+                fout.write(json.dumps({
+                    "dataset": "sharegpt",
+                    "id": f"sharegpt_{example['id']}",
+                    "messages": messages
+                }) + "\n")
+        if invalid_cnt > 0:
+            print(f"# of invalid examples in sharegpt data: {invalid_cnt}")
+
+def convert_metamath_data(data_dir, output_dir, num_examples=None):
+    os.makedirs(output_dir, exist_ok=True)
+    examples = []
+    examples = datasets.load_from_disk(data_dir)
+    output_path = os.path.join(output_dir, "openchat_sharegpt_v3_data.jsonl")
+    with open(output_path, "w") as fout:
+        invalid_cnt = 0
+        for idx, example in enumerate(examples):
+            messages = []
+            valid = True
+            if example.get("model", None) == "Model: GPT-4":
+                source = "gpt-4"
+            else:
+                source = "others"
+            for message in example["items"]:
+                if message["from"] == "human" or message["from"] == "user":
+                    messages.append({
+                        "role": "user",
+                        "content": message["value"],
+                        "source": source,
+                    })
+                elif message["from"] == "gpt" or message["from"] == "chatgpt":
+                    messages.append({
+                        "role": "assistant",
+                        "content": message["value"],
+                        "source": source,
+                    })
+                elif message["from"] == "system":
+                    valid = False
+                    invalid_cnt += 1
+                    break
+                elif message["from"] == "bing":
+                    valid = False
+                    invalid_cnt += 1
+                    break
+                else:
+                    raise ValueError(f"Unknown message sender: {message['from']}")
+            if messages and valid:
+                fout.write(json.dumps({
+                    "dataset": "sharegpt",
+                    "id": f"sharegpt_{example['id']}",
+                    "messages": messages
+                }) + "\n")
+        if invalid_cnt > 0:
+            print(f"# of invalid examples in sharegpt data: {invalid_cnt}")
+
 
 
 def convert_baize_data(data_dir, output_dir, num_examples=None):
