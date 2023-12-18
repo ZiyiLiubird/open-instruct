@@ -27,14 +27,14 @@ nohup deepspeed open_instruct/finetune_trainer.py \
     --logging_steps 1 \
     --save_strategy epoch \
     --save_total_limit 1 \
-    --num_train_epochs 3 \
+    --num_train_epochs 5 \
     --output_dir output/hf_train/llama2_7B_sharegpt_extraid \
     --bf16 \
     --tf32 True \
     --torch_dtype bfloat16 \
     --overwrite_cache \
     --add_extra_id \
-    --resume_from_checkpoint output/hf_train/llama2_7B_sharegpt_extraid/checkpoint-1298 \
+    --resume_from_checkpoint output/hf_train/llama2_7B_sharegpt_extraid/checkpoint-2596 \
     --report_to "tensorboard" &> hf_sharegpt_extraid.out &
     # --overwrite_output_dir \
     # --overwrite_cache \

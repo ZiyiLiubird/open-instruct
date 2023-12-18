@@ -450,7 +450,6 @@ def convert_metamath_data(data_dir, output_dir, num_examples=None):
             print(f"# of invalid examples in sharegpt data: {invalid_cnt}")
 
 
-
 def convert_baize_data(data_dir, output_dir, num_examples=None):
     os.makedirs(output_dir, exist_ok=True)
     examples = []

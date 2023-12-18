@@ -1,0 +1,156 @@
+#!/usr/bin/env python
+# coding=utf-8
+'''
+This script is used to reformat the downloaded datasets into the format that can be used by the model.
+Here we use jsonl for the converted data. Each line in the jsonl file is a json object formatted as follows:
+{
+    "dataset": "dataset_name",
+    "id": "unique_id",
+    "messages": [
+        {"role": "system", "content": "message_text"}, # optional
+        {"role": "user", "content": "message_text"},
+        {"role": "assistant", "content": "message_text"},
+        {"role": "user", "content": "message_text"},
+        {"role": "assistant", "content": "message_text"},
+        ...
+    ],
+}
+'''
+
+import json
+import random
+import re
+import os
+import pandas as pd
+import argparse
+import datasets
+import numpy as np
+from open_instruct.instruction_encode_templates import encode_instruction_example, encode_few_shot_example
+
+
+def convert_kaggle_data(data_dir, output_dir, data_file="data.json"):
+    output_dir = os.path.join(output_dir, "coding")
+    os.makedirs(output_dir, exist_ok=True)
+    raw_dataset = []
+    with open(os.path.join(data_dir, data_file), "r") as fin:
+        raw_dataset.extend(json.load(fin))
+
+    output_path = os.path.join(output_dir, "kaggle.jsonl")
+    source = "coding"
+    with open(output_path, "w") as fout:
+        for idx, data_dict in enumerate(raw_dataset):
+            messages = []
+            prompt = data_dict['instruction']
+            response = data_dict['output']
+            messages.append({
+                "role": "user",
+                "content": prompt,
+                "source": source,
+            })
+            messages.append({
+                "role": "assistant",
+                "content": response,
+                "source": source,
+            })
+            fout.write(json.dumps({
+                "dataset": "kaggle",
+                "id": f"kaggle_{idx}",
+                "messages": messages
+            }) + "\n")
+
+def convert_leetcode_data(data_dir, output_dir, data_file="data.json"):
+    output_dir = os.path.join(output_dir, "coding")
+    os.makedirs(output_dir, exist_ok=True)
+    raw_dataset = []
+    with open(os.path.join(data_dir, data_file), "r") as fin:
+        raw_dataset.extend(json.load(fin))
+
+    output_path = os.path.join(output_dir, "leetcode.jsonl")
+    source = "coding"
+    with open(output_path, "w") as fout:
+        for idx, data_dict in enumerate(raw_dataset):
+            messages = []
+            prompt = data_dict['instruction']
+            response = data_dict['output']
+            messages.append({
+                "role": "user",
+                "content": prompt,
+                "source": source,
+            })
+            messages.append({
+                "role": "assistant",
+                "content": response,
+                "source": source,
+            })
+            fout.write(json.dumps({
+                "dataset": "leetcode",
+                "id": f"leetcode_{idx}",
+                "messages": messages
+            }) + "\n")
+
+def convert_code_sharegpt_data(data_dir, output_dir, data_file="Code-74k-ShareGPT.json", num_examples=None):
+    os.makedirs(output_dir, exist_ok=True)
+    examples = []
+    with open(os.path.join(data_dir, data_file), "r") as fin:
+        examples.extend(json.load(fin))
+    if num_examples:
+        examples = random.sample(examples, k=num_examples)
+    source = "coding"
+    output_path = os.path.join(output_dir, "code_sharegpt.jsonl")
+    with open(output_path, "w") as fout:
+        for idx, example in enumerate(examples):
+            messages = []
+            for message in example["conversations"]:
+                if message["from"] == "human" or message["from"] == "user":
+                    messages.append({
+                        "role": "user",
+                        "content": message["value"],
+                        "source": source,
+                    })
+                elif message["from"] == "gpt" or message["from"] == "chatgpt":
+                    messages.append({
+                        "role": "assistant",
+                        "content": message["value"],
+                        "source": source,
+                    })
+                else:
+                    raise ValueError(f"Unknown message sender: {message['from']}")
+
+            fout.write(json.dumps({
+                "dataset": "code_sharegpt",
+                "id": f"code_sharegpt_{example['id']}",
+                "messages": messages
+            }) + "\n")
+
+def convert_tinycode_data(data_dir, output_dir, num_examples=390000):
+    output_dir = os.path.join(output_dir, "coding")
+    os.makedirs(output_dir, exist_ok=True)
+    raw_dataset = datasets.load_from_disk(dataset_path=data_dir)
+    if num_examples:
+        length = len(raw_dataset)
+        indices = np.random.choice(length, num_examples, replace=False)
+        examples = [raw_dataset[int(idx)] for idx in indices]
+    else:
+        examples = raw_dataset
+    output_path = os.path.join(output_dir, "tinycode.jsonl")
+    source = "coding"
+    with open(output_path, "w") as fout:
+        for idx, data_dict in enumerate(examples):
+            messages = []
+            prompt = data_dict['prompt']
+            response = data_dict['response']
+            messages.append({
+                "role": "user",
+                "content": prompt,
+                "source": source,
+            })
+            messages.append({
+                "role": "assistant",
+                "content": response,
+                "source": source,
+            })
+            fout.write(json.dumps({
+                "dataset": "tinycode",
+                "id": f"tinycode_{idx}",
+                "messages": messages
+            }) + "\n")
