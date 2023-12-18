@@ -25,10 +25,11 @@ import pandas as pd
 import argparse
 import datasets
 import numpy as np
+from transformers import PreTrainedTokenizer
 from open_instruct.instruction_encode_templates import encode_instruction_example, encode_few_shot_example
 
 
-def convert_kaggle_data(data_dir, output_dir, data_file="data.json"):
+def convert_kaggle_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, data_file="data.json"):
     output_dir = os.path.join(output_dir, "coding")
     os.makedirs(output_dir, exist_ok=True)
     raw_dataset = []
@@ -37,11 +38,13 @@ def convert_kaggle_data(data_dir, output_dir, data_file="data.json"):
 
     output_path = os.path.join(output_dir, "kaggle.jsonl")
     source = "coding"
+    cnt_token = 0
     with open(output_path, "w") as fout:
         for idx, data_dict in enumerate(raw_dataset):
             messages = []
             prompt = data_dict['instruction']
             response = data_dict['output']
+            cnt_token += len(tokenizer.encode('\n'.join([prompt, response])))
             messages.append({
                 "role": "user",
                 "content": prompt,
@@ -54,11 +57,14 @@ def convert_kaggle_data(data_dir, output_dir, data_file="data.json"):
             })
             fout.write(json.dumps({
                 "dataset": "kaggle",
+                "source": source,
                 "id": f"kaggle_{idx}",
                 "messages": messages
             }) + "\n")
+            
+    return cnt_token
 
-def convert_leetcode_data(data_dir, output_dir, data_file="data.json"):
+def convert_leetcode_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, data_file="data.json"):
     output_dir = os.path.join(output_dir, "coding")
     os.makedirs(output_dir, exist_ok=True)
     raw_dataset = []
@@ -67,11 +73,13 @@ def convert_leetcode_data(data_dir, output_dir, data_file="data.json"):
 
     output_path = os.path.join(output_dir, "leetcode.jsonl")
     source = "coding"
+    cnt_token = 0
     with open(output_path, "w") as fout:
         for idx, data_dict in enumerate(raw_dataset):
             messages = []
             prompt = data_dict['instruction']
             response = data_dict['output']
+            cnt_token += len(tokenizer.encode('\n'.join([prompt, response])))
             messages.append({
                 "role": "user",
                 "content": prompt,
@@ -84,11 +92,13 @@ def convert_leetcode_data(data_dir, output_dir, data_file="data.json"):
             })
             fout.write(json.dumps({
                 "dataset": "leetcode",
+                "source": source,
                 "id": f"leetcode_{idx}",
                 "messages": messages
             }) + "\n")
+    return cnt_token
 
-def convert_code_sharegpt_data(data_dir, output_dir, data_file="Code-74k-ShareGPT.json", num_examples=None):
+def convert_code_sharegpt_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, data_file="Code-74k-ShareGPT.json", num_examples=None):
     os.makedirs(output_dir, exist_ok=True)
     examples = []
     with open(os.path.join(data_dir, data_file), "r") as fin:
@@ -97,6 +107,7 @@ def convert_code_sharegpt_data(data_dir, output_dir, data_file="Code-74k-ShareGP
         examples = random.sample(examples, k=num_examples)
     source = "coding"
     output_path = os.path.join(output_dir, "code_sharegpt.jsonl")
+    cnt_token = 0
     with open(output_path, "w") as fout:
         for idx, example in enumerate(examples):
             messages = []
@@ -107,22 +118,26 @@ def convert_code_sharegpt_data(data_dir, output_dir, data_file="Code-74k-ShareGP
                         "content": message["value"],
                         "source": source,
                     })
+                    cnt_token += len(tokenizer.encode(message["value"]))
                 elif message["from"] == "gpt" or message["from"] == "chatgpt":
                     messages.append({
                         "role": "assistant",
                         "content": message["value"],
                         "source": source,
                     })
+                    cnt_token += len(tokenizer.encode(message["value"]))
                 else:
                     raise ValueError(f"Unknown message sender: {message['from']}")
 
             fout.write(json.dumps({
                 "dataset": "code_sharegpt",
-                "id": f"code_sharegpt_{example['id']}",
+                "source": source,
+                "id": f"code_sharegpt_{idx}",
                 "messages": messages
             }) + "\n")
+    return cnt_token
 
-def convert_tinycode_data(data_dir, output_dir, num_examples=390000):
+def convert_tinycode_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, num_examples=390000):
     output_dir = os.path.join(output_dir, "coding")
     os.makedirs(output_dir, exist_ok=True)
     raw_dataset = datasets.load_from_disk(dataset_path=data_dir)
@@ -134,11 +149,13 @@ def convert_tinycode_data(data_dir, output_dir, num_examples=390000):
         examples = raw_dataset
     output_path = os.path.join(output_dir, "tinycode.jsonl")
     source = "coding"
+    cnt_token = 0
     with open(output_path, "w") as fout:
         for idx, data_dict in enumerate(examples):
             messages = []
             prompt = data_dict['prompt']
             response = data_dict['response']
+            cnt_token += len(tokenizer.encode('\n'.join([prompt, response])))
             messages.append({
                 "role": "user",
                 "content": prompt,
@@ -151,6 +168,8 @@ def convert_tinycode_data(data_dir, output_dir, num_examples=390000):
             })
             fout.write(json.dumps({
                 "dataset": "tinycode",
+                "source": source,
                 "id": f"tinycode_{idx}",
                 "messages": messages
             }) + "\n")
+    return cnt_token

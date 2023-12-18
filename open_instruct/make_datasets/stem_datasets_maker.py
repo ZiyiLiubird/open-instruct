@@ -25,10 +25,11 @@ import pandas as pd
 import argparse
 import datasets
 import numpy as np
+from transformers import PreTrainedTokenizer
 from open_instruct.instruction_encode_templates import encode_instruction_example, encode_few_shot_example
 
 
-def convert_scienceqa_data(data_dir, output_dir, data_file="data.json"):
+def convert_scienceqa_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, data_file="data.json"):
     output_dir = os.path.join(output_dir, "stem")
     os.makedirs(output_dir, exist_ok=True)
     raw_dataset = []
@@ -37,11 +38,13 @@ def convert_scienceqa_data(data_dir, output_dir, data_file="data.json"):
 
     output_path = os.path.join(output_dir, "scienceqa.jsonl")
     source = "stem"
+    cnt_token = 0
     with open(output_path, "w") as fout:
         for idx, data_dict in enumerate(raw_dataset):
             messages = []
             prompt = data_dict['instruction']
             response = data_dict['output']
+            cnt_token += len(tokenizer.encode('\n'.join([prompt, response])))
             messages.append({
                 "role": "user",
                 "content": prompt,
@@ -54,11 +57,13 @@ def convert_scienceqa_data(data_dir, output_dir, data_file="data.json"):
             })
             fout.write(json.dumps({
                 "dataset": "scienceqa",
+                "source": source,
                 "id": f"scienceqa_{idx}",
                 "messages": messages
             }) + "\n")
+    return cnt_token
 
-def convert_finance_data(data_dir, output_dir, num_examples=None):
+def convert_finance_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, num_examples=None):
     output_dir = os.path.join(output_dir, "stem")
     os.makedirs(output_dir, exist_ok=True)
     raw_dataset = datasets.load_from_disk(dataset_path=data_dir)
@@ -70,11 +75,13 @@ def convert_finance_data(data_dir, output_dir, num_examples=None):
         examples = raw_dataset
     output_path = os.path.join(output_dir, "finance.jsonl")
     source = "stem"
+    cnt_token = 0
     with open(output_path, "w") as fout:
         for idx, data_dict in enumerate(examples):
             messages = []
             prompt = data_dict['instruction']
             response = data_dict['output']
+            cnt_token += len(tokenizer.encode('\n'.join([prompt, response])))
             messages.append({
                 "role": "user",
                 "content": prompt,
@@ -87,6 +94,8 @@ def convert_finance_data(data_dir, output_dir, num_examples=None):
             })
             fout.write(json.dumps({
                 "dataset": "finance",
+                "source": source,
                 "id": f"finance_{idx}",
                 "messages": messages
             }) + "\n")
+    return cnt_token
