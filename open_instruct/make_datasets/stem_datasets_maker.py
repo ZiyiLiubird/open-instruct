@@ -26,7 +26,6 @@ import argparse
 import datasets
 import numpy as np
 from transformers import PreTrainedTokenizer
-from open_instruct.instruction_encode_templates import encode_instruction_example, encode_few_shot_example
 
 
 def convert_scienceqa_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, data_file="data.json"):
@@ -92,6 +91,8 @@ def convert_finance_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, n
                 "content": response,
                 "source": source,
             })
+            if len(messages) == 0:
+                continue
             fout.write(json.dumps({
                 "dataset": "finance",
                 "source": source,

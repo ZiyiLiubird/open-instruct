@@ -25,7 +25,6 @@ import pandas as pd
 import argparse
 import datasets
 from transformers import PreTrainedTokenizer
-from open_instruct.instruction_encode_templates import encode_instruction_example, encode_few_shot_example
 
 
 def convert_cot_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, num_zero_shot_examples=50000, num_few_shot_examples=50000):
@@ -88,6 +87,8 @@ def convert_metamath_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir):
                 "content": response,
                 "source": source,
             })
+            if len(messages) == 0:
+                continue
             fout.write(json.dumps({
                 "dataset": "metamathqa",
                 "source": source,
@@ -122,6 +123,8 @@ def convert_prm800k_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, d
                 "content": response,
                 "source": source,
             })
+            if len(messages) == 0:
+                continue
             fout.write(json.dumps({
                 "dataset": "prm800k",
                 "source": source,
@@ -156,6 +159,8 @@ def convert_airobors_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, 
                 "content": response,
                 "source": source,
             })
+            if len(messages) == 0:
+                continue
             fout.write(json.dumps({
                 "dataset": "airobors",
                 "source": source,
@@ -190,6 +195,8 @@ def convert_arb_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, data_
                 "content": response,
                 "source": source,
             })
+            if len(messages) == 0:
+                continue
             fout.write(json.dumps({
                 "dataset": "arb",
                 "source": source,

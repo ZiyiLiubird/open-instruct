@@ -1,6 +1,6 @@
 # # Here we use 1 GPU for demonstration, but you can use multiple GPUs and larger eval_batch_size to speed up the evaluation.
-export CUDA_VISIBLE_DEVICES=0
-MODEL_PATH="/paratera5-data/private/liuziyi/models/Mistral-7B-v0.1"
+export CUDA_VISIBLE_DEVICES=2
+MODEL_PATH="/paratera5-data/private/liuziyi/mygit/open-instruct/output/hf_train/llama_ability/checkpoint-8000"
 
 # # Evaluating llama 7B model using chain-of-thought
 # python -m eval.gsm.run_eval \
@@ -17,15 +17,12 @@ MODEL_PATH="/paratera5-data/private/liuziyi/models/Mistral-7B-v0.1"
 python -m eval.gsm.run_eval \
     --data_dir data/eval/gsm/ \
     --max_num_examples 1319 \
-    --save_dir results/gsm/mistral-7B \
+    --save_dir results/gsm/mistral_ability \
     --model "${MODEL_PATH}" \
     --tokenizer "${MODEL_PATH}" \
-    --use_vllm
-    # --use_chat_format
-    # --add_extra_id
+    --use_vllm \
+    --add_extra_id
     # --n_shot 8
-    # --add_extra_id \
-    # --n_shot 8 
 
 
 # # Evaluating tulu 7B model using chain-of-thought and chat format

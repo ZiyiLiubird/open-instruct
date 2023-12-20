@@ -25,7 +25,7 @@ import pandas as pd
 import argparse
 import datasets
 from transformers import PreTrainedTokenizer
-from open_instruct.instruction_encode_templates import encode_instruction_example, encode_few_shot_example
+from instruction_encode_templates import encode_instruction_example, encode_few_shot_example
 
 
 def convert_dove_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir):
@@ -52,7 +52,8 @@ def convert_dove_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir):
                     "content": response,
                     "source": source,
                 })
-
+            if len(messages) == 0:
+                continue
             fout.write(json.dumps({
                 "dataset": "dove",
                 "source": source,
@@ -85,7 +86,8 @@ def convert_orca_chat_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir)
                     "content": response,
                     "source": source,
                 })
-
+            if len(messages) == 0:
+                continue
             fout.write(json.dumps({
                 "dataset": "orca_chat",
                 "source": source,
@@ -205,6 +207,8 @@ def convert_longform_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir):
                 "content": response,
                 "source": source,
             })
+            if len(messages) == 0:
+                continue
             fout.write(json.dumps({
                 "dataset": "longform",
                 "source": source,

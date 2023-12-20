@@ -1,0 +1,1 @@
+nohup python -u open_instruct/make_datasets/main_maker.py --dataset all_datasets &> prepare_ability_dataset.out &

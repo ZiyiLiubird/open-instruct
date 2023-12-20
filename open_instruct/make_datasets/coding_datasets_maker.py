@@ -26,7 +26,6 @@ import argparse
 import datasets
 import numpy as np
 from transformers import PreTrainedTokenizer
-from open_instruct.instruction_encode_templates import encode_instruction_example, encode_few_shot_example
 
 
 def convert_kaggle_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, data_file="data.json"):
@@ -55,6 +54,8 @@ def convert_kaggle_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, da
                 "content": response,
                 "source": source,
             })
+            if len(messages) == 0:
+                continue
             fout.write(json.dumps({
                 "dataset": "kaggle",
                 "source": source,
@@ -90,6 +91,8 @@ def convert_leetcode_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, 
                 "content": response,
                 "source": source,
             })
+            if len(messages) == 0:
+                continue
             fout.write(json.dumps({
                 "dataset": "leetcode",
                 "source": source,
@@ -99,6 +102,7 @@ def convert_leetcode_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, 
     return cnt_token
 
 def convert_code_sharegpt_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, data_file="Code-74k-ShareGPT.json", num_examples=None):
+    output_dir = os.path.join(output_dir, "coding")
     os.makedirs(output_dir, exist_ok=True)
     examples = []
     with open(os.path.join(data_dir, data_file), "r") as fin:
@@ -128,7 +132,8 @@ def convert_code_sharegpt_data(tokenizer: PreTrainedTokenizer, data_dir, output_
                     cnt_token += len(tokenizer.encode(message["value"]))
                 else:
                     raise ValueError(f"Unknown message sender: {message['from']}")
-
+            if len(messages) == 0:
+                continue
             fout.write(json.dumps({
                 "dataset": "code_sharegpt",
                 "source": source,
@@ -166,6 +171,8 @@ def convert_tinycode_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, 
                 "content": response,
                 "source": source,
             })
+            if len(messages) == 0:
+                continue
             fout.write(json.dumps({
                 "dataset": "tinycode",
                 "source": source,

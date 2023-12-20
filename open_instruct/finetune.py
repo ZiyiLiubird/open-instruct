@@ -274,27 +274,39 @@ def encode_with_messages_format(example, tokenizer, max_seq_length, add_extra_id
     '''
     messages = example['messages']
     if len(messages) == 0:
-        raise ValueError('messages field is empty.')
+        raise ValueError(f"messages field is empty. source is {example['source']}")
     
     def _concat_messages(messages):
         message_text = ""
+        if add_extra_id:
+            extra_id = ""
+            source = messages[0]['source']
+            if source == "reasoning":
+                extra_id = "[_reasoning_]" + "\n"
+            elif source == "coding":
+                extra_id = "[_coding_]" + "\n"
+            elif source == "roleplay":
+                extra_id = "[_roleplay_]" + "\n"
+            elif source == "comprehensive":
+                extra_id = "[_comprehensive_]" + "\n"
+            elif source == "stem":
+                extra_id = "[_stem_]" + "\n"
+            elif source == "math":
+                extra_id = "[_calculate_]" + "\n"
+
         for message in messages:
-            source = message.get('source', None)
             if message["role"] == "system":
                 message_text += "<|system|>\n" + message["content"].strip() + "\n"
             elif message["role"] == "user":
                 message_text += "<|user|>\n" + message["content"].strip() + "\n"
                 if add_extra_id:
-                    if source == "gpt-4":
-                        message_text += "[extra_id_1]" + "\n"
-                    else:
-                        message_text += "[extra_id_0]" + "\n"
+                    message_text += extra_id
             elif message["role"] == "assistant":
                 message_text += "<|assistant|>\n" + message["content"].strip() + tokenizer.eos_token + "\n"
             else:
                 raise ValueError("Invalid role: {}".format(message["role"]))
         return message_text
-        
+
     example_text = _concat_messages(messages).strip()
     tokenized_example = tokenizer(example_text, return_tensors='pt', max_length=max_seq_length, truncation=True)
     input_ids = tokenized_example.input_ids
@@ -338,7 +350,7 @@ def save_with_accelerate(accelerator, model, tokenizer, output_dir, args):
     # When doing multi-gpu training, we need to use accelerator.get_state_dict(model) to get the state_dict.
     # Otherwise, sometimes the model will be saved with only part of the parameters.
     # Also, accelerator needs to use the wrapped model to get the state_dict.
-    # state_dict = accelerator.get_state_dict(model)
+    state_dict = accelerator.get_state_dict(model)
     if args.use_lora:
         # When using lora, the unwrapped model is a PeftModel, which doesn't support the is_main_process 
         # and has its own save_pretrained function for only saving lora modules.
@@ -347,8 +359,8 @@ def save_with_accelerate(accelerator, model, tokenizer, output_dir, args):
             unwrapped_model.save_pretrained(output_dir, state_dict=state_dict)
     else:
         unwrapped_model.save_pretrained(
-            output_dir, is_main_process=accelerator.is_main_process, save_function=accelerator.save) #, state_dict=state_dict
-        # )
+            output_dir, is_main_process=accelerator.is_main_process, save_function=accelerator.save, state_dict=state_dict,
+            safe_serialization=False)
         
 def init_new_embeddings(embeddings: nn.Embedding, num_new_tokens) -> None:
 

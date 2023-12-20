@@ -30,7 +30,7 @@ def main(args):
                 "question": example["question"],
                 "answer": example["answer"].split("####")[1].strip()
             })
-        
+
     # some numbers are in the `x,xxx` format, and we want to remove the comma
     for example in test_data:
         example["answer"] = re.sub(r"(\d),(\d)", r"\1\2", example["answer"])
@@ -50,23 +50,13 @@ def main(args):
         demonstrations = []
         for example in GSM_EXAMPLARS:
             if args.no_cot:
-                if args.add_extra_id:
-                    demonstrations.append(
-                        "Quesion: " + example["question"] + "\n" + "[extra_id_1]\n" + "Answer: " + example["short_answer"]
-                    )
-                else:
-                    demonstrations.append(
-                        "Quesion: " + example["question"] + "\n" + "Answer: " + example["short_answer"]
-                    )
+                demonstrations.append(
+                    "Quesion: " + example["question"] + "\n" + "Answer: " + example["short_answer"]
+                )
             else:
-                if args.add_extra_id:
-                    demonstrations.append(
-                        "Question: " + example["question"] + "\n" + "[extra_id_1]\n" + "Answer: " + example["cot_answer"]
-                    )
-                else:
-                    demonstrations.append(
-                        "Question: " + example["question"] + "\n" + "Answer: " + example["cot_answer"]
-                    )
+                demonstrations.append(
+                    "Question: " + example["question"] + "\n" + "Answer: " + example["cot_answer"]
+                )
         prompt_prefix = "Answer the following questions.\n\n" + "\n\n".join(demonstrations) + "\n\n"
     else:
         prompt_prefix = "Answer the following question.\n\n"
@@ -81,7 +71,7 @@ def main(args):
             prompts.append(prompt)
     else:
         if args.add_extra_id:
-            prompts = [prompt_prefix + "Question: " + example["question"].strip() + "\n[extra_id_1]" + "\nAnswer:" for example in test_data]
+            prompts = [prompt_prefix + "Question: " + example["question"].strip() + "\n[_comprehensive_]" + "\nAnswer:" for example in test_data]
         else:
             prompts = [prompt_prefix + "Question: " + example["question"].strip() + "\nAnswer:" for example in test_data]
 
@@ -135,6 +125,10 @@ def main(args):
         outputs = [result["output"] for result in results]
 
     predictions = []
+    with open("respnse.txt", "w") as file:
+        for out in outputs:
+            file.write(out)
+            file.write("\n*************\n")
     for output in outputs:
         # replace numbers like `x,xxx` with `xxxx`
         output = re.sub(r"(\d),(\d)", r"\1\2", output)

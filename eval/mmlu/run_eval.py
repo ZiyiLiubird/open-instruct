@@ -22,7 +22,7 @@ def format_subject(subject):
     return s
 
 
-def format_example(df, idx, include_answer=True):
+def format_example(df, idx, include_answer=True, add_extra_id=False):
     prompt = df.iloc[idx, 0]
     k = df.shape[1] - 2
     for j in range(k):
@@ -43,20 +43,31 @@ def gen_prompt(train_df, subject, k=-1):
         prompt += format_example(train_df, i)
     return prompt
 
+subject_ability_map = {"abstract_algebra": "[_reasoning_]", "business_ethics": "[_stem_]",
+                       "high_school_mathematics": "[_reasoning_]",
+                       "high_school_macroeconomics": "[_stem_]",
+                       "high_school_computer_science": "[_coding_]",
+                       "high_school_statistics": "[_reasoning_]",
+                       "high_school_physics": "[_stem_]",
+                       "econometrics": "[_stem_]",
+                       "college_physics": "[_stem_]"}
 
 @torch.no_grad()
 def eval_hf_model(args, subject, model, tokenizer, dev_df, test_df, batch_size=1):
     prompts = []
     chat_formatting_function = dynamic_import_function(args.chat_formatting_function) if args.use_chat_format else None
+    
     for i in range(0, test_df.shape[0]):
         k = args.ntrain
-        prompt_end = format_example(test_df, i, include_answer=False)
+        prompt_end = format_example(test_df, i, include_answer=False, add_extra_id=args.add_extra_id)
         train_prompt = gen_prompt(dev_df, subject, k)
         prompt = train_prompt + prompt_end
 
         if args.use_chat_format:
             messages = [{"role": "user", "content": prompt}]
             prompt = chat_formatting_function(messages, add_bos=False)
+            if args.add_extra_id:
+                prompt += "[_comprehensive_]\n"
             if prompt[-1] in ["\n", " "]:
                 prompt += "The answer is:"
             else:
@@ -64,7 +75,7 @@ def eval_hf_model(args, subject, model, tokenizer, dev_df, test_df, batch_size=1
 
         tokenized_prompt = tokenizer(prompt, truncation=False, add_special_tokens=False).input_ids
         # make sure every prompt is less than 2048 tokens
-        while len(tokenized_prompt) > 2048:
+        while len(tokenized_prompt) > 4096:
             k -= 1
             train_prompt = gen_prompt(dev_df, subject, k)
             prompt = train_prompt + prompt_end
@@ -179,7 +190,7 @@ def main(args):
     cat_cors = {cat: [] for cat in categories}
 
     for subject in tqdm(subjects, desc=f"Evaluating subjects: "):
-        
+        print("subject: ", subject)
         dev_df = pd.read_csv(
             os.path.join(args.data_dir, "dev", subject + "_dev.csv"), header=None
         )[: args.ntrain]
@@ -299,6 +310,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--load_in_8bit",
+        action="store_true",
+        help="load model in 8bit mode, which will reduce memory and speed up inference."
+    )
+    parser.add_argument(
+        "--add_extra_id",
         action="store_true",
         help="load model in 8bit mode, which will reduce memory and speed up inference."
     )

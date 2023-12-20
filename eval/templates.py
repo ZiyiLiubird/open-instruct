@@ -7,7 +7,7 @@ def create_prompt_with_tulu_chat_format(messages, bos="<s>", eos="</s>", add_bos
         elif message["role"] == "user":
             formatted_text += "<|user|>\n" + message["content"] + "\n"
             if add_extra_id:
-                formatted_text += "[extra_id_0]\n"
+                formatted_text += "[_reasoning_]\n"
         elif message["role"] == "assistant":
             formatted_text += "<|assistant|>\n" + message["content"].strip() + eos + "\n"
         else:

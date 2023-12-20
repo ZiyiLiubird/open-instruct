@@ -25,7 +25,6 @@ import pandas as pd
 import argparse
 import datasets
 from transformers import PreTrainedTokenizer
-from open_instruct.instruction_encode_templates import encode_instruction_example, encode_few_shot_example
 
 
 def convert_roleplay_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, num_examples=None):
@@ -48,29 +47,29 @@ def convert_roleplay_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, 
         for idx, example in enumerate(examples):
             messages = []
             for message in example["messages"]:
-                if message["from"] == "human" or message["from"] == "user":
+                if message["role"] == "human" or message["role"] == "user":
                     messages.append({
                         "role": "user",
-                        "content": message["value"],
+                        "content": message["content"],
                         "source": source,
                     })
-                    cnt_token += len(tokenizer.encode('\n'.join([message["value"]])))
-                elif message["from"] == "assistant":
+                    cnt_token += len(tokenizer.encode(message["content"]))
+                elif message["role"] == "assistant" or message['role'] == "gpt":
                     messages.append({
                         "role": "assistant",
-                        "content": message["value"],
+                        "content": message["content"],
                         "source": source,
                     })
-                    cnt_token += len(tokenizer.encode('\n'.join([message["value"]])))
-                elif message["from"] == "system":
+                    cnt_token += len(tokenizer.encode(message["content"]))
+                elif message["role"] == "system":
                     messages.append({
                         "role": "system",
-                        "content": message["value"],
+                        "content": message["content"],
                         "source": source,
                     })
-                    cnt_token += len(tokenizer.encode('\n'.join([message["value"]])))
+                    cnt_token += len(tokenizer.encode(message["content"]))
                 else:
-                    raise ValueError(f"Unknown message sender: {message['from']}")
+                    raise ValueError(f"Unknown message sender: {message['role']}")
             if messages:
                 fout.write(json.dumps({
                     "dataset": "roleplay",

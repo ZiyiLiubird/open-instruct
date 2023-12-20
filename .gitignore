@@ -6,6 +6,8 @@ data/*
 output/
 beaker_configs/auto_created
 *.out
+*.txt
+*.png
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

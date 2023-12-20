@@ -43,7 +43,36 @@ def main():
         save_path = os.path.join(divide_path, source, "data.json")
         with open(save_path, "w") as file:
             json.dump(map_dict[source], file)
-        
-        
+
+def listdir():
+    output_dir = '/paratera5-data/private/liuziyi/mygit/open-instruct/data/raw_train/cot'
+    all_subsets = [f for f in os.listdir(os.path.join(output_dir))] 
+    print(all_subsets)
+
+def shuffle():
+    data_dir = "/paratera5-data/private/liuziyi/dataset/tiny-codes/"
+    raw_dataset = datasets.load_from_disk(dataset_path=data_dir)['train']
+    print(raw_dataset['train'][0].keys())
+    print(raw_dataset['train'][0]['prompt'])
+    print('------------------------')
+    raw_dataset = raw_dataset.shuffle(seed=42)
+    print(raw_dataset['train'][0]['prompt'])
+
+
+def filter():
+    cnt_clean = 0
+    cnt_old = 0
+    output_dir = '/paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability'
+    with open(os.path.join(output_dir, "all_data_clean.jsonl"), "w") as fout:
+        with open(os.path.join(output_dir, "all_data.jsonl"), "r") as sub_f:
+            for line in sub_f:
+                data = json.loads(line)
+                cnt_old += 1
+                if len(data['messages']) > 0:
+                    fout.write(line)
+                    cnt_clean += 1
+    
+    print(f"cnt_clean: {cnt_clean} cnt_old: {cnt_old}")
 if __name__ == "__main__":
-    read_json()
+    # listdir()
+    shuffle()

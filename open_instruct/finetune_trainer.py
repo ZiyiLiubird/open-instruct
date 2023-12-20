@@ -7,6 +7,7 @@ This file is modified from the huggingface example for finetuning language model
 
 import logging
 import os
+os.environ['CUDA_HOME'] = '/ssd/apps/cuda-11.8'
 import sys
 import warnings
 from dataclasses import dataclass, field
@@ -360,12 +361,14 @@ def main():
                 desc="Tokenizing and reformatting instruction data",
             )
         else:
+            logger.info(f"Streaming")
             lm_datasets = raw_datasets.map(
                 encode_function,
                 batched=False,
             )
         lm_datasets.set_format(type="pt")
         lm_datasets = lm_datasets.filter(lambda example: (example['labels'] != -100).any())
+        lm_datasets = lm_datasets.shuffle(seed=training_args.seed)
 
     if training_args.do_train:
         if "train" not in raw_datasets:
