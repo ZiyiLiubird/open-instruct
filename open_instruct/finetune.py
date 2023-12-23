@@ -282,17 +282,19 @@ def encode_with_messages_format(example, tokenizer, max_seq_length, add_extra_id
             extra_id = ""
             source = messages[0]['source']
             if source == "reasoning":
-                extra_id = "[_reasoning_]" + "\n"
+                extra_id = "[extra_id_1]" + "\n"
             elif source == "coding":
-                extra_id = "[_coding_]" + "\n"
-            elif source == "roleplay":
-                extra_id = "[_roleplay_]" + "\n"
-            elif source == "comprehensive":
-                extra_id = "[_comprehensive_]" + "\n"
-            elif source == "stem":
-                extra_id = "[_stem_]" + "\n"
-            elif source == "math":
-                extra_id = "[_calculate_]" + "\n"
+                extra_id = "[extra_id_0]" + "\n"
+            else:
+                raise NotImplementedError
+            # elif source == "roleplay":
+            #     extra_id = "[_roleplay_]" + "\n"
+            # elif source == "comprehensive":
+            #     extra_id = "[_comprehensive_]" + "\n"
+            # elif source == "stem":
+            #     extra_id = "[_stem_]" + "\n"
+            # elif source == "math":
+            #     extra_id = "[_calculate_]" + "\n"
 
         for message in messages:
             if message["role"] == "system":

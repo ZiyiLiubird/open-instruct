@@ -42,19 +42,19 @@ def merge():
         with open(data_path, "r") as fin:
             for line in fin:
                 fout.write(line)
-    
+
 
 
 def main():
     all_subsets = [f for f in os.listdir(dataset_path)]
     print(len(all_subsets))
     output_path = "/paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability/math"
-
     all_data_list = []
     for subset in all_subsets:
-        dataset = datasets.load_from_disk(os.path.join(dataset_path, subset))['train']
-        data_list = sample(dataset, num_examples=100000)
-        all_data_list.extend(data_list)
+        if subset.split('__')[0] == 'arithmetic':
+            dataset = datasets.load_from_disk(os.path.join(dataset_path, subset))['train']
+            data_list = sample(dataset, num_examples=1100)
+            all_data_list.extend(data_list)
     source = "math"
     print("filter done")
     with open(os.path.join(output_path, "sampled.jsonl"), 'w') as fout:

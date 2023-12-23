@@ -110,7 +110,7 @@ def convert_code_sharegpt_data(tokenizer: PreTrainedTokenizer, data_dir, output_
     if num_examples:
         examples = random.sample(examples, k=num_examples)
     source = "coding"
-    output_path = os.path.join(output_dir, "code_sharegpt.jsonl")
+    output_path = os.path.join(output_dir, "code_sharegpt_10k.jsonl")
     cnt_token = 0
     with open(output_path, "w") as fout:
         for idx, example in enumerate(examples):

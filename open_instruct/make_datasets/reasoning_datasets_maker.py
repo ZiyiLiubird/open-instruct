@@ -24,6 +24,7 @@ import os
 import pandas as pd
 import argparse
 import datasets
+import numpy as np
 from transformers import PreTrainedTokenizer
 
 
@@ -64,15 +65,21 @@ def convert_cot_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, num_z
             }) + "\n")
     return cnt_token
 
-def convert_metamath_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir):
+def convert_metamath_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, num_examples=None):
     output_dir = os.path.join(output_dir, "reasoning")
     os.makedirs(output_dir, exist_ok=True)
     raw_dataset = datasets.load_from_disk(dataset_path=data_dir)
-    output_path = os.path.join(output_dir, "metamathqa.jsonl")
+    output_path = os.path.join(output_dir, f"metamathqa_{num_examples/1000}k.jsonl")
     source = "reasoning"
     cnt_token = 0
+    if num_examples and len(raw_dataset) > num_examples:
+        length = len(raw_dataset)
+        indices = np.random.choice(length, num_examples, replace=False)
+        examples = [raw_dataset[int(idx)] for idx in indices]
+    else:
+        examples = raw_dataset
     with open(output_path, "w") as fout:
-        for idx, data_dict in enumerate(raw_dataset):
+        for idx, data_dict in enumerate(examples):
             messages = []
             prompt = data_dict['query']
             response = data_dict['response']
@@ -201,6 +208,46 @@ def convert_arb_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, data_
                 "dataset": "arb",
                 "source": source,
                 "id": f"arb_{idx}",
+                "messages": messages
+            }) + "\n")
+    return cnt_token
+
+
+def convert_gsm8k_data(tokenizer: PreTrainedTokenizer, data_dir, output_dir, num_examples=None):
+    output_dir = os.path.join(output_dir, "math")
+    os.makedirs(output_dir, exist_ok=True)
+    raw_dataset = datasets.load_from_disk(dataset_path=data_dir)
+    output_path = os.path.join(output_dir, f"gsm8k_{num_examples/1000}k.jsonl")
+    source = "math"
+    cnt_token = 0
+    if num_examples and len(raw_dataset) > num_examples:
+        length = len(raw_dataset)
+        indices = np.random.choice(length, num_examples, replace=False)
+        examples = [raw_dataset[int(idx)] for idx in indices]
+    else:
+        examples = raw_dataset
+    with open(output_path, "w") as fout:
+        for idx, data_dict in enumerate(examples):
+            messages = []
+            prompt = data_dict['query']
+            response = data_dict['response']
+            cnt_token += len(tokenizer.encode('\n'.join([prompt, response])))
+            messages.append({
+                "role": "user",
+                "content": prompt,
+                "source": source,
+            })
+            messages.append({
+                "role": "assistant",
+                "content": response,
+                "source": source,
+            })
+            if len(messages) == 0:
+                continue
+            fout.write(json.dumps({
+                "dataset": "metamathqa",
+                "source": source,
+                "id": f"metamathqa_{idx}",
                 "messages": messages
             }) + "\n")
     return cnt_token

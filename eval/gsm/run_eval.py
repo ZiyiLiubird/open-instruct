@@ -44,6 +44,7 @@ def main(args):
         os.makedirs(args.save_dir, exist_ok=True)
 
     global GSM_EXAMPLARS
+    
     if args.n_shot:
         if len(GSM_EXAMPLARS) > args.n_shot:
             GSM_EXAMPLARS = random.sample(GSM_EXAMPLARS, args.n_shot)
@@ -66,12 +67,12 @@ def main(args):
         chat_formatting_function = dynamic_import_function(args.chat_formatting_function)
         for example in test_data:
             messages = [{"role": "user", "content": prompt_prefix + "Question: " + example["question"].strip()}]
-            prompt = chat_formatting_function(messages, add_bos=False, add_extra_id=args.add_extra_id)
-            prompt += "Answer:" if prompt[-1] in ["\n", " "] else " Answer:"
+            prompt = chat_formatting_function(messages, add_bos=False, add_extra_id=args.add_extra_id, encoding=args.encoding)
+            # prompt += "Answer:" if prompt[-1] in ["\n", " "] else " Answer:"
             prompts.append(prompt)
     else:
         if args.add_extra_id:
-            prompts = [prompt_prefix + "Question: " + example["question"].strip() + "\n[_comprehensive_]" + "\nAnswer:" for example in test_data]
+            prompts = [prompt_prefix + "Question: " + example["question"].strip() + "\n[_reasoning_]" + "\nAnswer:" for example in test_data]
         else:
             prompts = [prompt_prefix + "Question: " + example["question"].strip() + "\nAnswer:" for example in test_data]
 
@@ -86,8 +87,8 @@ def main(args):
             )
             sampling_params = vllm.SamplingParams(
                 temperature=0,
-                max_tokens=512,
-                stop=["\n"] if not args.use_chat_format else None, # we only use stop token for non-chat format (usually applied to vanilla pretrained language models). For chat format, we will rely on the model knows when to stop.
+                max_tokens=1024,
+                stop=None if not args.use_chat_format else None, # we only use stop token for non-chat format (usually applied to vanilla pretrained language models). For chat format, we will rely on the model knows when to stop.
             )
             # We need to remap the outputs to the prompts because vllm might not return outputs for some prompts (e.g., if the prompt is too long)
             generations = model.generate(prompts, sampling_params)
@@ -214,6 +215,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--add_extra_id", 
+        action="store_true", 
+        help="If given, we're evaluating a model without chain-of-thought."
+    )
+    parser.add_argument(
+        "--encoding", 
         action="store_true", 
         help="If given, we're evaluating a model without chain-of-thought."
     )

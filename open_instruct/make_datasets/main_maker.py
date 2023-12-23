@@ -133,6 +133,11 @@ if __name__ == "__main__":
                             for line in fin:
                                 fout.write(line)
             print(f"Finished !")
-        # else:
-        #     print(f"Processing {dataset} data with default configurations...")
-        #     globals()[f"convert_{dataset}_data"](os.path.join(args.raw_data_dir, dataset), os.path.join(args.output_dir, dataset))
+        elif dataset == "metamath":
+            print(f"Processing {dataset} data with default configurations...")
+            globals()[f"convert_{dataset}_data"](tokenizer, data_dir='/paratera5-data/private/liuziyi/dataset/metamathQA/train',
+                                                 output_dir=output_dir, num_examples=74000)
+        elif dataset == "code_sharegpt":
+            print(f"Processing {dataset} data with default configurations...")
+            globals()[f"convert_{dataset}_data"](tokenizer, data_dir='/paratera5-data/private/liuziyi/dataset/ajibawa-Code-74k-ShareGPT',
+                                                 output_dir=output_dir, num_examples=10000)

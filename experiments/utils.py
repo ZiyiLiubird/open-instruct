@@ -73,6 +73,86 @@ def filter():
                     cnt_clean += 1
     
     print(f"cnt_clean: {cnt_clean} cnt_old: {cnt_old}")
+
+def aaa(extra):
+    def bbb():
+        print(extra)
+    bbb()
+
+def to_json():
+    data_dir = "/paratera5-data/private/liuziyi/dataset/metamathQA"
+    raw_dataset = datasets.load_from_disk(dataset_path=data_dir)['train']
+    # with open(os.path.join(data_dir, 'MetaMathQA-395K.json'), 'w') as file:
+    json_list = raw_dataset.to_json(os.path.join(data_dir, 'MetaMathQA-395K.json'))
+
+def sample(dataset, num_examples):
+        
+    indices = np.random.choice(len(dataset), num_examples, replace=False)
+    data_list = [dataset[int(i)] for i in indices]
+    return data_list
+
+def sample_tinycode():
+    data_path = "/paratera5-data/private/liuziyi/dataset/tiny-codes/train"
+    raw_dataset = datasets.load_from_disk(dataset_path=data_path)
+    output_path = '/paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability/coding'
+    data_list = []
+    for data in raw_dataset:
+        if data['programming_language'] == 'Python':
+            data_list.append(data)
+    
+    sampled_data = sample(data_list, num_examples=9000)
+    source = 'coding'
+    with open(os.path.join(output_path, "sampled_tinycode_9k.jsonl"), 'w') as fout:
+        for idx, data_dict in enumerate(sampled_data):
+            messages = []
+            prompt = data_dict['prompt']
+            response = data_dict['response']
+            messages.append({
+                "role": "user",
+                "content": prompt,
+                "source": source,
+            })
+            messages.append({
+                "role": "assistant",
+                "content": response,
+                "source": source,
+            })
+            if len(messages) == 0:
+                continue
+            fout.write(json.dumps({
+                "dataset": "coding",
+                "source": source,
+                "id": f"tinycode_{idx}",
+                "messages": messages
+            }) + "\n")
+
+def merge():
+    tinycode_path = '/paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability/coding/sampled_tinycode_9k.jsonl'
+    leetcode = '/paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability/coding/leetcode.jsonl'
+    kaggle = '/paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability/coding/kaggle.jsonl'
+    save_path = '/paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability/coding'
+    path_list = [tinycode_path, leetcode, kaggle]
+    with open(os.path.join(save_path, 'sampled_code_10k.jsonl'), 'w') as fout:
+        for path_dir in path_list:
+            with open(path_dir, 'r') as fin:
+                for line in fin:
+                    fout.write(line)
+
+def merge_math_code():
+    code_path = '/paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability/coding/code_sharegpt.jsonl'
+    math_path = '/paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability/reasoning/metamathqa.jsonl'
+    save_path = '/paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability/multi-task'
+    path_list = [code_path, math_path]
+    with open(os.path.join(save_path, 'code_sharegpt_math_all.jsonl'), 'w') as fout:
+        for path_dir in path_list:
+            with open(path_dir, 'r') as fin:
+                for line in fin:
+                    fout.write(line)
+
+
 if __name__ == "__main__":
     # listdir()
-    shuffle()
+    # shuffle()
+    # to_json()   
+    # sample_tinycode()
+    merge_math_code()
