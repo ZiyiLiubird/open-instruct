@@ -13,7 +13,7 @@ nohup deepspeed open_instruct/finetune_trainer.py \
     --tokenizer_name /paratera5-data/private/liuziyi/models/Mistral-7B-v0.1 \
     --use_flash_attn True \
     --use_fast_tokenizer False \
-    --train_file /paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability/multi-task/code_sharegpt_math_all.jsonl \
+    --train_file /paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability/reasoning/metamathqa_74.0k.jsonl \
     --max_seq_length 4096 \
     --preprocessing_num_workers 128 \
     --do_train \
@@ -31,13 +31,13 @@ nohup deepspeed open_instruct/finetune_trainer.py \
     --save_total_limit 2 \
     --save_steps 500 \
     --num_train_epochs 3 \
-    --output_dir output/hf_train/mistral_math_code_sharegpt_all \
+    --output_dir output/hf_train/mistral_metamath_74k \
     --bf16 \
     --tf32 True \
     --torch_dtype bfloat16 \
     --overwrite_output_dir \
-    --cache_dir /paratera5-data/private/liuziyi/cache/mistral_math_code_sharegpt_all \
-    --report_to "tensorboard" &> hf_mistral_math_code_sharegpt_all.out &
+    --cache_dir /paratera5-data/private/liuziyi/cache/mistral_metamath_74k \
+    --report_to "tensorboard" &> hf_mistral_metamath_74k.out &
     # --overwrite_output_dir \
     # --overwrite_cache \
     # --resume_from_checkpoint output/hf_train/llama2_7B_sharegpt_extraid/checkpoint-2596 \

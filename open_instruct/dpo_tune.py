@@ -542,7 +542,7 @@ def main():
         )
     else:
         raise ValueError("You need to have 'chosen' and 'rejected in your column names.")
-    
+
     with accelerator.main_process_first():
         lm_datasets = raw_datasets["train_prefs"].map(
             encode_function,
@@ -645,7 +645,7 @@ def main():
 
     # Train!
     total_batch_size = args.per_device_train_batch_size * accelerator.num_processes * args.gradient_accumulation_steps
-    
+
     logger.info("***** Running training *****")
     logger.info(f"  Num examples = {len(train_dataset)}")
     logger.info(f"  Num Epochs = {args.num_train_epochs}")
