@@ -7,7 +7,6 @@ This file is modified from the huggingface example for finetuning language model
 
 import logging
 import os
-os.environ['CUDA_HOME'] = '/ssd/apps/cuda-11.8'
 import sys
 import warnings
 from dataclasses import dataclass, field

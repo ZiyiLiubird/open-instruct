@@ -7,13 +7,13 @@ TOTAL_BATCH_SIZE=128
 GRADIENT_ACC_STEPS=$(($TOTAL_BATCH_SIZE/$NUM_GPUS/$BATCH_SIZE_PER_GPU))
 echo "Training llama model ${MODEL_SIZE} using $NUM_GPUS GPUs, $BATCH_SIZE_PER_GPU batch size per GPU, $GRADIENT_ACC_STEPS gradient accumulation steps"
 
-nohup deepspeed open_instruct/finetune_trainer.py \
+deepspeed open_instruct/finetune_trainer.py \
     --deepspeed ds_configs/stage3_no_offloading.conf \
-    --model_name_or_path /paratera5-data/private/liuziyi/models/Mistral-7B-v0.1 \
-    --tokenizer_name /paratera5-data/private/liuziyi/models/Mistral-7B-v0.1 \
+    --model_name_or_path /storage/home/lanzhenzhongLab/liuziyi/models/mistralai/Mistral-7B-v0.1 \
+    --tokenizer_name /storage/home/lanzhenzhongLab/liuziyi/models/mistralai/Mistral-7B-v0.1 \
     --use_flash_attn True \
     --use_fast_tokenizer False \
-    --train_file /paratera5-data/private/liuziyi/mygit/open-instruct/data/processed/ability/reasoning/metamathqa_74.0k.jsonl \
+    --train_file /storage/home/lanzhenzhongLab/liuziyi/mygit/open-instruct/data/processed/ability/reasoning/metamathqa_74.0k.jsonl \
     --max_seq_length 4096 \
     --preprocessing_num_workers 128 \
     --do_train \
@@ -36,8 +36,8 @@ nohup deepspeed open_instruct/finetune_trainer.py \
     --tf32 True \
     --torch_dtype bfloat16 \
     --overwrite_output_dir \
-    --cache_dir /paratera5-data/private/liuziyi/cache/mistral_metamath_74k \
-    --report_to "tensorboard" &> hf_mistral_metamath_74k.out &
+    --cache_dir /storage/home/lanzhenzhongLab/liuziyi/cache/mistral_metamath_74k \
+    --report_to "tensorboard" #&> hf_mistral_metamath_74k.out &
     # --overwrite_output_dir \
     # --overwrite_cache \
     # --resume_from_checkpoint output/hf_train/llama2_7B_sharegpt_extraid/checkpoint-2596 \

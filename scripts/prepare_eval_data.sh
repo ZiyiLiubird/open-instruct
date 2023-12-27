@@ -1,5 +1,5 @@
 mkdir -p data/downloads
-mkdir -p data/eval
+# mkdir -p data/eval
 
 # MMLU dataset
 wget -O data/downloads/mmlu_data.tar https://people.eecs.berkeley.edu/~hendrycks/data.tar

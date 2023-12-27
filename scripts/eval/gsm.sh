@@ -1,6 +1,6 @@
 # # Here we use 1 GPU for demonstration, but you can use multiple GPUs and larger eval_batch_size to speed up the evaluation.
 export CUDA_VISIBLE_DEVICES=1
-MODEL_PATH="/paratera5-data/private/liuziyi/mygit/open-instruct/output/hf_train/mistral_metamath_74k"
+MODEL_PATH="/storage/home/lanzhenzhongLab/liuziyi/models/mistralai/Mistral-7B-v0.1"
 
 # # Evaluating llama 7B model using chain-of-thought
 # python -m eval.gsm.run_eval \
@@ -20,8 +20,8 @@ python -m eval.gsm.run_eval \
     --save_dir results/gsm/mistral_ability \
     --model "${MODEL_PATH}" \
     --tokenizer "${MODEL_PATH}" \
-    --use_vllm \
-    --use_chat_format
+    --use_vllm
+    # --use_chat_format
     # --add_extra_id
     # --encoding
     # --n_shot 8

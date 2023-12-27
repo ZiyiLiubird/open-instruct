@@ -25,7 +25,7 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         "--raw_data_dir", 
         type=str, 
-        default="/paratera5-data/private/liuziyi/dataset"
+        default="/storage/home/lanzhenzhongLab/liuziyi/dataset"
     )
     arg_parser.add_argument(
         "--output_dir", 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         "--tokenizer_name_or_path", 
         type=str, 
-        default="/paratera5-data/private/liuziyi/models/Mistral-7B-v0.1"
+        default="/storage/home/lanzhenzhongLab/liuziyi/models/mistralai/Mistral-7B-v0.1"
     )
     arg_parser.add_argument(
         "--seed", 
@@ -135,7 +135,7 @@ if __name__ == "__main__":
             print(f"Finished !")
         elif dataset == "metamath":
             print(f"Processing {dataset} data with default configurations...")
-            globals()[f"convert_{dataset}_data"](tokenizer, data_dir='/paratera5-data/private/liuziyi/dataset/metamathQA/train',
+            globals()[f"convert_{dataset}_data"](tokenizer, data_dir='/storage/home/lanzhenzhongLab/liuziyi/dataset/reasoning/MetaMathQA/train',
                                                  output_dir=output_dir, num_examples=74000)
         elif dataset == "code_sharegpt":
             print(f"Processing {dataset} data with default configurations...")
