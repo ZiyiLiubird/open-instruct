@@ -12,15 +12,21 @@ def convert(raw_data, tokenizer:PreTrainedTokenizer):
     for sample in raw_data:
         messages = sample['messages']
         data = []
-        for message in messages:
+        for idx, message in enumerate(messages):
             if message['role'] == "system":
                 prompt_length += len(tokenizer.encode(message['content']))
                 data.append(message)
             elif message['role'] == "user":
                 data.append(message)
                 prompt_length += len(tokenizer.encode(message['content']))
+                if idx == len(messages) - 1:
+                    continue
+                assert messages[idx+1]['role'] == "assistant"
+                expert_response = messages[idx+1]['content']
+                prompt_length += len(tokenizer.encode(expert_response))
                 data_list.append({
                     "messages": deepcopy(data),
+                    "expert_response": expert_response,
                     "source": sample.get('source', None),
                     "dataset": sample.get('dataset', None),
                     "token_num": prompt_length
@@ -44,7 +50,7 @@ def main(data_path, tokenizer_path, save_path, max_length=4096):
         with open(raw_data_path, mode='rt', encoding='utf-8') as f:
             for line in f:
                 raw_data.append(json.loads(line))
-
+    
     data_list = convert(raw_data, tokenizer)
     
     with open(os.path.join(save_path, "test.jsonl"), 'w') as fin:

@@ -47,6 +47,39 @@ def format_prompt(
 
     return ''.join(buffer)
 
+def format_tulu_prompt(
+    messages: str | list[str],  # pylint: disable=redefined-builtin
+    eos_token: str,
+    add_extra_token: bool = False,
+    extra_token: str = "",
+) -> str:
+    if isinstance(messages, str):
+        messages = [messages]
+    elif not isinstance(messages, list):
+        raise ValueError(f'Unsupported type of `messages`: {type(input)}. Expected: str or list[str].')
+    
+    
+    formatted_text = ""
+    negative_text = ""
+    for idx, message in enumerate(messages):
+        if message["role"] == "system":
+            formatted_text += "<|system|>\n" + message["content"] + "\n"
+        elif message["role"] == "user":
+            formatted_text += "<|user|>\n" + message["content"] + "\n"
+            if idx == len(messages) - 1:
+                negative_text += formatted_text
+            if add_extra_token:
+                formatted_text += extra_token
+                formatted_text += "\n"
+        elif message["role"] == "assistant":
+            formatted_text += "<|assistant|>\n" + message["content"].strip() + eos_token + "\n"
+        else:
+            raise ValueError(
+                "Tulu chat template only supports 'system', 'user' and 'assistant' roles. Invalid role: {}.".format(message["role"])
+                )
+    formatted_text += "<|assistant|>\n"
+    return formatted_text, negative_text
+
 
 def right_padding(sequences: list[torch.Tensor], padding_value: Number) -> torch.Tensor:
     return pad_sequence(sequences, batch_first=True, padding_value=padding_value)

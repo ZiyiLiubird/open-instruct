@@ -51,3 +51,7 @@ PROMPT_DICT: dict[str, str] = {
 }
 
 ADAM_BETAS: tuple[float, float] = (0.9, 0.95)
+
+NAME2CONDITION: dict[str, str] = {}
+
+CONDITION_LIST = []

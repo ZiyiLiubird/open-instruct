@@ -22,7 +22,7 @@ import torch
 from torch.utils.data import Dataset, Subset
 
 from rlhf.datasets.base import CollatorBase, RawSample, TokenizedDataset
-from rlhf.datasets.utils import format_prompt, left_padding
+from rlhf.datasets.utils import format_prompt, format_tulu_prompt, left_padding
 
 
 __all__ = [
@@ -44,11 +44,23 @@ class PromptOnlyBatch(TypedDict, total=True):
 
 class PromptOnlyDataset(TokenizedDataset):
     def preprocess(self, raw_sample: RawSample) -> PromptOnlySample:
-        prompt = format_prompt(input=raw_sample['input'], eos_token=self.tokenizer.eos_token)
-        input_ids = self.tokenize(prompt)
-        return {
-            'input_ids': input_ids,  # size = (L,)
-        }
+        if raw_sample.get('input') is None and raw_sample.get('dialogue') is None and raw_sample.get('messages') is None:
+            raise ValueError('Either `input`, `dialogue` or messages must be provided.')
+        if raw_sample.get('input') is not None and raw_sample.get('dialogue') is not None:
+            raise ValueError('At most one of `input` and `dialogue` can be provided.')
+
+        if raw_sample.get('input') is not None:
+            prompt = format_prompt(input=raw_sample['input'], eos_token=self.tokenizer.eos_token)
+            input_ids = self.tokenize(prompt)
+            return {
+                'input_ids': input_ids,  # size = (L,)
+            }
+        elif raw_sample.get('messages') is not None:
+            prompt, _ = format_tulu_prompt(messages=raw_sample['messages'], eos_token=self.tokenizer.eos_token)
+            input_ids = self.tokenize(prompt)
+            return {
+                'input_ids': input_ids,  # size = (L,)
+            }
 
     def get_collator(self) -> Callable[[list[dict[str, torch.Tensor]]], dict[str, torch.Tensor]]:
         return PromptOnlyCollator(self.tokenizer.pad_token_id)

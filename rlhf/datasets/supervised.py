@@ -75,7 +75,7 @@ class SupervisedDataset(TokenizedDataset):
                     if add_extra_id:
                         message_text += extra_id
                 elif message["role"] == "assistant":
-                    message_text += "<|assistant|>\n" + message["content"].strip() + tokenizer.eos_token + "\n"
+                    message_text += "<|assistant|>\n" + message["content"].strip() + self.tokenizer.eos_token + "\n"
                 else:
                     raise ValueError("Invalid role: {}".format(message["role"]))
             return message_text
@@ -110,7 +110,7 @@ class SupervisedDataset(TokenizedDataset):
         }
 
     def preprocess(self, raw_sample: RawSample) -> SupervisedSample:
-        if raw_sample.get('input') is None and raw_sample.get('dialogue') is None and raw_sample.get('messages'):
+        if raw_sample.get('input') is None and raw_sample.get('dialogue') is None and raw_sample.get('messages') is None:
             raise ValueError('Either `input`, `dialogue` or messages must be provided.')
         if raw_sample.get('input') is not None and raw_sample.get('dialogue') is not None:
             raise ValueError('At most one of `input` and `dialogue` can be provided.')

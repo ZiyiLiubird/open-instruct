@@ -103,6 +103,7 @@ class RawSample(TypedDict, total=False):
     messages: NotRequired[list[str]]  # either `input` or `dialogue` should be provided
     """Mesages history."""
     
+    condition: NotRequired[str] # condition variable
 
     # Flags
     better: NotRequired[bool]
