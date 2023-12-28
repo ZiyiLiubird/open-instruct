@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 
 
 LoggerLevel = Literal['CRITICAL', 'FATAL', 'ERROR', 'WARN', 'WARNING', 'INFO', 'DEBUG', 'NOTSET']
-_LOGGER = logging.getLogger('safe_rlhf')
+_LOGGER = logging.getLogger('rlhf')
 
 
 def set_logger_level(level: LoggerLevel | None = None) -> None:

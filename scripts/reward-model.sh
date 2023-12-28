@@ -108,7 +108,7 @@ DEEPSPEED_ARGS+=("--master_port" "${MASTER_PORT}")
 exec 1> >(tee "${OUTPUT_DIR}/stdout.log" >&1) 2> >(tee "${OUTPUT_DIR}/stderr.log" >&2)
 
 deepspeed "${DEEPSPEED_ARGS[@]}" \
-	--module rlhf.values.reward \
+	rlhf/reward/main.py \
 	--train_datasets PKU-SafeRLHF/train \
 	--eval_datasets PKU-SafeRLHF/test \
 	--model_name_or_path "${MODEL_NAME_OR_PATH}" \

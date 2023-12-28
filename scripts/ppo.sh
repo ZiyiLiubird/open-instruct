@@ -128,7 +128,7 @@ DEEPSPEED_ARGS+=("--master_port" "${MASTER_PORT}")
 exec 1> >(tee "${OUTPUT_DIR}/stdout.log" >&1) 2> >(tee "${OUTPUT_DIR}/stderr.log" >&2)
 
 deepspeed "${DEEPSPEED_ARGS[@]}" \
-	--module safe_rlhf.algorithms.ppo \
+	--module rlhf.algorithms.ppo \
 	--train_datasets PKU-SafeRLHF/train \
 	--ptx_datasets alpaca \
 	--actor_model_name_or_path "${ACTOR_MODEL_NAME_OR_PATH}" \

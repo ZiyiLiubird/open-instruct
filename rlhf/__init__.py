@@ -14,7 +14,7 @@
 # ==============================================================================
 """Safe-RLHF: Safe Reinforcement Learning with Human Feedback."""
 
-from rlhf import algorithms, configs, datasets, models, trainers, utils, values
+from rlhf import algorithms, configs, datasets, models, trainers, utils, reward
 from rlhf.algorithms import *  # noqa: F403
 from rlhf.configs import *  # noqa: F403
 from rlhf.datasets import *  # noqa: F403
@@ -31,6 +31,6 @@ __all__ = [
     *datasets.__all__,
     *models.__all__,
     *trainers.__all__,
-    *values.__all__,
+    *reward.__all__,
     *utils.__all__,
 ]

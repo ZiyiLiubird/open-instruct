@@ -5,6 +5,15 @@ import json
 import random
 import numpy as np
 
+def test(path: str) -> None:
+    assert path.split('.')[-1] == 'jsonl'
+    data_file = path
+
+    data = []
+    with open(data_file, mode='rt', encoding='utf-8') as f:
+        for line in f:
+            data.append(json.loads(line))
+    print(len(data))
 
 def read_json():
     data_path = "/paratera5-data/private/liuziyi/dataset/role_play/synthetic_data_clean.json"
@@ -155,4 +164,5 @@ if __name__ == "__main__":
     # shuffle()
     # to_json()   
     # sample_tinycode()
-    merge_math_code()
+    # merge_math_code()
+    test(path='/storage/home/lanzhenzhongLab/liuziyi/mygit/open-instruct/data/processed/ability/reasoning/metamathqa_74.0k.jsonl')

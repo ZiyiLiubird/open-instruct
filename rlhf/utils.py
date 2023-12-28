@@ -96,7 +96,7 @@ __PYTREE_REGISTRY_LOCK = threading.Lock()
 
 def __initialize_pytree_registry_once() -> None:
     # pylint: disable-next=import-outside-toplevel,unused-import
-    from safe_rlhf.models.score_model import ScoreModelOutput  # noqa: F401
+    from rlhf.models.score_model import ScoreModelOutput  # noqa: F401
 
     global __PYTREE_INITIALIZED  # pylint: disable=global-statement
     if __PYTREE_INITIALIZED:
@@ -113,13 +113,13 @@ def __initialize_pytree_registry_once() -> None:
                 {'encoding': batch_encoding.encodings, 'n_sequences': batch_encoding.n_sequences},
             ),
             lambda metadata, children: BatchEncoding(children[0], **metadata),
-            namespace='safe_rlhf',
+            namespace='rlhf',
         )
         optree.register_pytree_node(
             ModelOutput,
             lambda model_output: (model_output.values(), model_output.keys(), model_output.keys()),
             lambda keys, values: ModelOutput(OrderedDict(zip(keys, values))),
-            namespace='safe_rlhf',
+            namespace='rlhf',
         )
 
         for model_output_class in filter(dataclasses.is_dataclass, get_subclasses(ModelOutput)):
@@ -127,7 +127,7 @@ def __initialize_pytree_registry_once() -> None:
                 model_output_class,
                 lambda model_output: ([dataclasses.asdict(model_output)], type(model_output)),
                 lambda metadata, children: metadata(**children[0]),
-                namespace='safe_rlhf',
+                namespace='rlhf',
             )
 
         __PYTREE_INITIALIZED = True
@@ -139,7 +139,7 @@ def to_device(batch: TensorTree, device: torch.device | str | int | None) -> Ten
         __initialize_pytree_registry_once()
     if device is None:
         return batch
-    return optree.tree_map(lambda x: x.to(device), batch, namespace='safe_rlhf')
+    return optree.tree_map(lambda x: x.to(device), batch, namespace='rlhf')
 
 
 def batch_retokenize(

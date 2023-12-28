@@ -35,7 +35,7 @@ from rlhf.reward.trainer import RewardTrainer
 def parse_arguments() -> argparse.Namespace:
     """Parse the command-line arguments."""
     parser = argparse.ArgumentParser(
-        prog='deepspeed --module safe_rlhf.values.reward',
+        prog='deepspeed --module rlhf.values.reward',
         description='Train a reward model.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )

@@ -32,7 +32,7 @@ from rlhf.utils import seed_everything, str2bool
 def parse_arguments() -> argparse.Namespace:
     """Parse the command-line arguments."""
     parser = argparse.ArgumentParser(
-        prog='deepspeed --module safe_rlhf.algorithms.ppo_lag',
+        prog='deepspeed --module rlhf.algorithms.ppo_lag',
         description='Train language model using Safe-RLHF with PPO algorithm and reward shaping.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )

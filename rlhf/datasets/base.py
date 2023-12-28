@@ -100,6 +100,9 @@ class RawSample(TypedDict, total=False):
     """Other assistant answer text via resampling."""
     dialogue: NotRequired[list[str]]  # either `input` or `dialogue` should be provided
     """Dialogue history."""
+    messages: NotRequired[list[str]]  # either `input` or `dialogue` should be provided
+    """Mesages history."""
+    
 
     # Flags
     better: NotRequired[bool]
@@ -341,11 +344,22 @@ class TokenizedDataset(Dataset[Dict[str, torch.Tensor]]):
         padding: bool | str | PaddingStrategy = PaddingStrategy.DO_NOT_PAD,
         truncation: bool | str | TruncationStrategy = TruncationStrategy.LONGEST_FIRST,
         max_length: int | None = None,
+        return_origin: bool = False,
     ) -> torch.LongTensor:  # size = (L,)
         """Tokenize a text string into a tensor representation."""
         if max_length is None:
             max_length = self.tokenizer.model_max_length
-
+        
+        if return_origin:
+            return self.tokenizer(
+                text,
+                add_special_tokens=add_special_tokens,
+                padding=padding,
+                max_length=max_length,
+                truncation=truncation,
+                return_tensors='pt',
+            )['input_ids']
+        
         return self.tokenizer(
             text,
             add_special_tokens=add_special_tokens,

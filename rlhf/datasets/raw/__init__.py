@@ -22,6 +22,7 @@ from rlhf.datasets.raw.hh_rlhf import (
     HhRLHFHelpfulDialogueDataset,
 )
 from rlhf.datasets.raw.moss import MOSS002SFT, MOSS003SFT
+from rlhf.datasets.raw.tulu import TULUSFT
 from rlhf.datasets.raw.safe_rlhf import (
     SafeRLHF10KTrainDataset,
     SafeRLHF30KTestDataset,
@@ -40,6 +41,7 @@ __all__ = [
     'HhRLHFHelpfulDialogueDataset',
     'MOSS002SFT',
     'MOSS003SFT',
+    'TULUSFT',
     'SafeRLHFDataset',
     'SafeRLHFTrainDataset',
     'SafeRLHFTestDataset',
